@@ -1,3 +1,9 @@
+#left = mom
+#right = dad
+#sibling = spouse
+#parent = child
+#build tree, audit, get branch
+
 import os
 import math
 import hashlib
@@ -22,7 +28,7 @@ class MerkleTree:
     
         @height.setter
         def height(self,height):
-            
+
             self._height = height
 
         def get_sibling(self, sibling_hash):
@@ -71,9 +77,36 @@ class MerkleTree:
         m.update(data.encode('utf-8'))
         return m.hexdigest()
 
-    
+    def _audit(self, questioned_hash, proof_hashes):
+        """ Tests if questioned_hash is a member of the merkle tree by
+            hashing it with its test until the root hash is reached. 
+        """
+        proof_hash = proof_hashes.pop()
 
-    def _handle_solo_node_case(self,):
+        if not proof_hash in self.node_table.keys():
+            return False
+
+        test = self.node_table[proof_hash]
+        parent = test.parent
+
+        # Because the order in which the hashes are concatenated matters,
+        # we must test to see if questioned_hash is the "mother" or "father"
+        # of its child (the hash is always build as mother + father).
+        if parent.left.hash == questioned_hash:
+            actual_hash = self._md5sum(questioned_hash + test.hash)
+        elif parent.right.hash == questioned_hash:
+            actual_hash = self._md5sum(test.hash + questioned_hash)
+        else:
+            return False
+
+        if actual_hash != parent.hash:
+            return False
+        if actual_hash == self.root_hash:
+            return True
+
+        return self._audit(actual_hash, proof_hashes)    
+
+    def _handle_solo_node_case(self):
         # The earlier method for building the tree will fail in a one node case
         if len(self.leaves) == 1:
             solo_node = self.leaves.pop()
@@ -81,7 +114,7 @@ class MerkleTree:
             self.node_table[solo_node.hash] = solo_node
 
     def _get_leaf_hashes(self):
-        return [node.hash for node in self.node_table.values() if node.mom == None]
+        return [node.hash for node in self.node_table.values() if node.left == None]
 
     # TODO break into sub methods?
     def build_tree(self):
@@ -134,14 +167,10 @@ class MerkleTree:
 
 
 
-a=MerkleTree([2,3,4,5])
+a=MerkleTree([2,3,4,5,6])
 print(a.root_hash)
 p=a.node_table[a.root_hash].right.right
 print(p.hash)
-
-
-
-
 
 
 
