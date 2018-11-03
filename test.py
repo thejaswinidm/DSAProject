@@ -72,16 +72,34 @@ class MerkleTree:
         """ Returns an md5 hash of data. 
             If data is a file it is expected to contain its full path.
         """
+        # data = str(data)
+        # m = hashlib.md5()
+        # m.update(data.encode('utf-8'))
+        # return m.hexdigest()
         data = str(data)
         m = hashlib.md5()
-        m.update(data.encode('utf-8'))
+        if os.path.isfile(data):
+            try:   
+                f = open(data, 'rb')
+            except:
+                return 'ERROR: unable to open %s' % data
+            while True:
+                d = f.read(8096)
+                if not d:
+                    break
+                m.update(d)
+            f.close()
+        # Otherwise it could be either 1) a directory 2) miscellaneous data (like json)
+        else:
+            m.update(data.encode('utf-8'))
         return m.hexdigest()
 
     def _audit(self, questioned_hash, proof_hashes):
         """ Tests if questioned_hash is a member of the merkle tree by
             hashing it with its test until the root hash is reached. 
         """
-        proof_hash = proof_hashes.pop()      
+        proof_hash = proof_hashes.pop()
+	#	print(proof_hash) #Arpit the weirdo wated it      
 
         if not proof_hash in self.node_table.keys():#This fnxn is of no usefor the time being
             return False    #""
@@ -173,7 +191,7 @@ class MerkleTree:
                 return True
             if self.max_height == 0 and hash_ != self.root_hash:
                 return False
-
+            print('Proof Hashes', proof_hashes)
             proof_hashes_cp = copy.copy(proof_hashes)
             return self._audit(hash_, proof_hashes_cp)
 
@@ -185,8 +203,7 @@ class MerkleTree:
             the Merkle tree as a list in order from the top of the tree
             to the bottom.
         """
-        
-
+    
         hash_ = self._md5sum(item)
 
         if not hash_ in self._get_leaf_hashes():
@@ -195,11 +212,31 @@ class MerkleTree:
 
         return self._get_branch_by_hash(hash_)
 
-        
+    def proof(self,root_h,l):
+        m1=MerkleTree(l)
+        if m1.root_hash == root_h:
+            print("The files are authentic")
+        else:
+            print('Delete the files immediately, those are corrupted')
 
-a=MerkleTree([2,3,4,5,6,7,8,9])
-print(a.root_hash)
-p=a.node_table[a.root_hash].right.right
-print(p.hash)
-print(a.audit(7,a.get_branch(7)))
+a=MerkleTree(['try.txt','try1.txt'])
+print("root",a.root_hash)
+p=a.node_table[a.root_hash].right
+print("try",p.hash)
+print(a.audit('try1.txt',a.get_branch('try1.txt')))
 print(a.audit(17,a.get_branch(17)))
+a.proof(a.root_hash,['try.txt','try2.txt'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
