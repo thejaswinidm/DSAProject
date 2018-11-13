@@ -1,32 +1,31 @@
 import os
 from HashFunction import *
 
-data=input('enter data')
+data=input('Enter data to be validated')
 #data = str(data)
         
 data = str(data)
 
 #data='try1.txt'
-        #m = hashlib.md5()
 if os.path.isfile(data):
-    t=open(data,"rb")
+    t = open(data, 'rb')
+    temp1 = ''
     while True:
-        d = t.read(8096)
+        d = t.read(8192)
         if not d:
             break
         #d=str(d)
         #print(d)
         temp=hash_fun_hex_str(hash_fun(d))
-                
+        temp1=hash_update(temp1,temp)
     t.close()
         # Otherwise it could be either 1) a directory 2) miscellaneous data (like json)
 else:
     data2=bytes(data,"utf-8")
-    temp=hash_fun_hex_str(hash_fun(data2))
+    temp1=hash_fun_hex_str(hash_fun(data2))
 
-actual_hash=temp
-root_hash=input('enter root hash')
-
+actual_hash=temp1
+root_hash=input('Enter the root hash')
 
 f = open('proof_to_user1.txt', 'r+')
 f1=open('proof.txt','w')
@@ -65,13 +64,15 @@ for line in f.readlines():
             f1.write(temp_str+'\n')
     count=count+1
 final_hash=actual_hash
+print('The final hash is: ', end  = ' ')
 print(final_hash)
+print('The root hash is: ', end  = ' ')
 print(root_hash)
 if(actual_hash==root_hash):
-    print("data is present")
-    print("see proof in proof.txt")
+    print("The data searched for is present in the Data Set")
+    print("See proof in proof.txt")
 else:
-    print("data is not present")
+    print("The data searched for is not present in the Data Set")
 
 f.close()
 f1.close()
