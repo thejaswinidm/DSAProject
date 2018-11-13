@@ -1,14 +1,8 @@
-#left = mom
-#right = dad
-#sibling = spouse
-#parent = child
-#build tree, audit, get branch
-
 import os
 import math
-import hashlib
+from HashFunction import *
 import copy
-
+proof_to_user=[]
 class MerkleTree:
     class Node:
         def __init__(self, left, right, hash_val):
@@ -73,33 +67,41 @@ class MerkleTree:
             If data is a file it is expected to contain its full path.
         """
         # data = str(data)
+        #data2=bytes(data,"utf-8")
+        #return h
         # m = hashlib.md5()
         # m.update(data.encode('utf-8'))
         # return m.hexdigest()
         data = str(data)
-        m = hashlib.md5()
+        
+        #m = hashlib.md5()
         if os.path.isfile(data):
             try:   
                 f = open(data, 'rb')
             except:
                 return 'ERROR: unable to open %s' % data
+            temp1 = ''
             while True:
                 d = f.read(8096)
                 if not d:
                     break
-                m.update(d)
+                #d=str(d)
+             #   print(d)
+                temp=hash_fun_hex_str(hash_fun(d))
+                temp1=hash_update(temp1,temp)
             f.close()
         # Otherwise it could be either 1) a directory 2) miscellaneous data (like json)
         else:
-            m.update(data.encode('utf-8'))
-        return m.hexdigest()
+            data2=bytes(data,"utf-8")
+            temp1=hash_fun_hex_str(hash_fun(data2))
+        return temp1
 
     def _audit(self, questioned_hash, proof_hashes):
         """ Tests if questioned_hash is a member of the merkle tree by
             hashing it with its test until the root hash is reached. 
         """
         proof_hash = proof_hashes.pop()
-	#	print(proof_hash) #Arpit the weirdo wanted it      
+	#	print(proof_hash) #Arpit the weirdo wated it      
 
         if not proof_hash in self.node_table.keys():#This fnxn is of no usefor the time being
             return False    #""
@@ -112,8 +114,15 @@ class MerkleTree:
         # of its child (the hash is always build as mother + father).
         if parent.left.hash == questioned_hash:
             actual_hash = self._md5sum(questioned_hash + test.hash)
+            temp_str=questioned_hash+'   +   '+test.hash+'   =   '+actual_hash
+            proof_to_user.append('2')
+            proof_to_user.append(test.hash)
         elif parent.right.hash == questioned_hash:
             actual_hash = self._md5sum(test.hash + questioned_hash)
+            temp_str=test.hash+'   +   '+questioned_hash+'   =   '+actual_hash
+            proof_to_user.append('1')
+            proof_to_user.append(test.hash)
+
         else:   #never executes
             return False    #""
 
@@ -171,12 +180,10 @@ class MerkleTree:
     def audit(self, data, proof_hashes):
         """ Returns a boolean testing if a data (a file or object)
             is contained in the merkle tree. 
-
             proof_hashes are the nodes to hash the hash of data with 
             in order from the bottom of the tree to the second-to-last
             level. len(proof_hashes) is expected to be the height of the
             tree, ceil(log2(n)), as one node is needed for proof per layer.
-
             If the tree has not been built, returns False for any data.
         """
         if proof_hashes:
@@ -219,10 +226,18 @@ class MerkleTree:
         else:
             print('Delete the files immediately, those are corrupted')
 
-a=MerkleTree(['try.txt','try1.txt'])
-print("Root",a.root_hash)
+'''a=MerkleTree(['try.txt','try1.txt'])
+print("root",a.root_hash)
 p=a.node_table[a.root_hash].right
-print("One Child",p.hash)
+print("try",p.hash)
 print(a.audit('try1.txt',a.get_branch('try1.txt')))
 print(a.audit(17,a.get_branch(17)))
-# a.proof(a.root_hash,['try.txt','try2.txt'])
+a.proof(a.root_hash,['try.txt','try2.txt'])
+'''
+a=MerkleTree(['testing_update.txt'])
+print(a.root_hash)
+# print(a.audit('try1.txt',a.get_branch('try1.txt')))
+# f = open("proof_to_user1.txt","w")
+# for i in range(len(proof_to_user)):
+#     f.write(str(proof_to_user[i]+'\n')) 
+# f.close()

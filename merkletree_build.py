@@ -197,9 +197,9 @@ class MerkleTree:
 
         
 
-a=MerkleTree([2,3,4,5,6,7,8,9])
+a=MerkleTree(['try.txt'])
 print(a.root_hash)
-p=a.node_table[a.root_hash].right.right
-print(p.hash)
-print(a.audit(7,a.get_branch(7)))
-print(a.audit(17,a.get_branch(17)))
+# p=a.node_table[a.root_hash].right.right
+# print(p.hash)
+# print(a.audit(7,a.get_branch(7)))
+# print(a.audit(17,a.get_branch(17)))
